@@ -1,0 +1,44 @@
+# Model weights
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.gguf
+models/
+
+# Large result files
+*.npz
+*.npy
+results_*/
+results/
+mechinterp/activations/
+mechinterp/results/
+mechinterp/probes/
+
+# Data
+*.jsonl
+*.json
+data/baseline*/
+data/benchmarks/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+*.egg-info/
+
+# Logs
+*.log
+nohup.out
+checkpoints/
+
+# System
+.DS_Store
+*.swp
+*~
+
+# Secrets
+.env
+secrets.yaml

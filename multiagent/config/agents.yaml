@@ -1,0 +1,97 @@
+# CSS v3 Multi-Agent Tournament
+# Authoritative agent registry
+
+agents:
+
+  LJ:
+    model: "meta-llama/Llama-3.1-8B-Instruct"
+    type: "live"
+    architecture: "llama"
+    gpu: 2
+    quantization: "8bit"
+    thinking: false
+
+  LS:
+    model: "meta-llama/Llama-3.1-70B-Instruct"
+    type: "live"
+    architecture: "llama"
+    gpu: 0
+    quantization: "8bit"
+    thinking: false
+
+  GJ:
+    model: "google/gemma-2-9b-it"
+    type: "live"
+    architecture: "gemma"
+    gpu: 2
+    quantization: "8bit"
+    thinking: false
+
+  GS:
+    model: "google/gemma-2-27b-it"
+    type: "live"
+    architecture: "gemma"
+    gpu: 1
+    quantization: "8bit"
+    thinking: false
+
+  QJ:
+    model: "Qwen/Qwen3.5-9B"
+    type: "live"
+    architecture: "qwen"
+    gpu: 3
+    quantization: "8bit"
+    thinking: false
+    chat_template_kwargs:
+      enable_thinking: false
+
+  QS:
+    model: "Qwen/Qwen3.8-27B"
+    type: "live"
+    architecture: "qwen"
+    gpu: 3
+    quantization: "8bit"
+    thinking: true
+    reasoning_effort: "xhigh"
+
+  LR:
+    model: "GraySwanAI/Llama-3-8B-Instruct-RR"
+    type: "live"
+    architecture: "llama"
+    gpu: 2
+    quantization: "8bit"
+    thinking: false
+
+  DS:
+    model: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+    type: "live"
+    architecture: "llama"
+    gpu: 2
+    quantization: "8bit"
+    thinking: true
+    strip_think_tags: true
+
+  PH:
+    model: "microsoft/Phi-3-mini-4k-instruct"
+    type: "live"
+    architecture: "phi"
+    gpu: 0
+    quantization: "8bit"
+    thinking: false
+
+  TU:
+    model: "allenai/Llama-3.1-Tulu-3-8B"
+    type: "live"
+    architecture: "llama"
+    gpu: 3
+    quantization: "8bit"
+    thinking: false
+
+  SG:
+    type: "sigma"
+    model: null
+    architecture: null
+    gpu: null
+    quantization: null
+    thinking: false
+    pre_generated: true

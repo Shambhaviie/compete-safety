@@ -45,7 +45,7 @@ CACHE_DIR   = "/scratch3/sha511/huggingface_cache"
 
 # ── evaluator model IDs ────────────────────────────────────────────────────────
 
-LLAMAGUARD_ID = "meta-llama/LlamaGuard-3-8B"
+LLAMAGUARD_ID = "meta-llama/Llama-Guard-3-8B"
 LEXI_ID       = "Orenguteng/Llama-3.1-8B-Lexi-Uncensored-V2"
 # StrongREJECT fine-tuned uses the strong_reject package — no separate HF load
 

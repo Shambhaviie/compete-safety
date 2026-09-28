@@ -181,14 +181,15 @@ def gpu_worker(
                 template_kwargs["enable_thinking"] = False
 
             messages = [{"role": "user", "content": prompt}]
-            input_ids = tok.apply_chat_template(
+            _enc = tok.apply_chat_template(
                 messages,
                 add_generation_prompt=True,
                 return_tensors="pt",
                 **({
                     "chat_template_kwargs": template_kwargs
                 } if template_kwargs else {}),
-            ).to(f"cuda:{gpu_id}")
+            )
+            input_ids = _enc["input_ids"].to(f"cuda:{gpu_id}") if hasattr(_enc, "input_ids") else _enc.to(f"cuda:{gpu_id}")
 
             # ── generate ───────────────────────────────────────────────────────
             with torch.no_grad():
@@ -334,10 +335,11 @@ def evaluator_worker(
             {"role": "user", "content": prompt},
             {"role": "assistant", "content": response},
         ]
-        input_ids = lg_tok.apply_chat_template(
+        _enc = lg_tok.apply_chat_template(
             chat,
             return_tensors="pt",
-        ).to(f"cuda:{GPU_EVAL}")
+        )
+        input_ids = _enc["input_ids"].to(f"cuda:{GPU_EVAL}") if hasattr(_enc, "input_ids") else _enc.to(f"cuda:{GPU_EVAL}")
         with torch.no_grad():
             out = lg_mdl.generate(
                 input_ids,
@@ -405,11 +407,12 @@ Write 2-3 sentences of direct feedback on answer quality: completeness, specific
             response=response[:400],
         )
         msgs = [{"role": "user", "content": content}]
-        input_ids = lx_tok.apply_chat_template(
+        _enc = lx_tok.apply_chat_template(
             msgs,
             add_generation_prompt=True,
             return_tensors="pt",
-        ).to(f"cuda:{GPU_EVAL}")
+        )
+        input_ids = _enc["input_ids"].to(f"cuda:{GPU_EVAL}") if hasattr(_enc, "input_ids") else _enc.to(f"cuda:{GPU_EVAL}")
         with torch.no_grad():
             out = lx_mdl.generate(
                 input_ids,

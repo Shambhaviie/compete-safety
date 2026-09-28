@@ -667,7 +667,7 @@ def orchestrator(
     log.info("  Evaluator worker started (GPU 3)")
 
     # ── wait for all workers ready ─────────────────────────────────────────────
-    n_expected_ready = len(gpu_groups) + 1  # GPU workers + evaluator
+    n_expected_ready = len(gpu_groups)  # GPU workers only — evaluator checked separately on eval_result_q
     n_ready = 0
     failed_loads = []
 

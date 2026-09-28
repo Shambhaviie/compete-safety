@@ -42,3 +42,4 @@ checkpoints/
 # Secrets
 .env
 secrets.yaml
+!multiagent/data/sigma_responses.json

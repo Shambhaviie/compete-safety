@@ -44,3 +44,4 @@ checkpoints/
 secrets.yaml
 !multiagent/data/sigma_responses.json
 !multiagent/data/prompt_pools/verified_phase2_prompts.jsonl
+!multiagent/data/prompt_pools/phase1_tasks_full80.jsonl

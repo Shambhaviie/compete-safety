@@ -130,6 +130,113 @@ def generate_response(tok, mdl, prompt, temperature, family):
         skip_special_tokens=True,
     ).strip()
 
+def generate_all_trials(tok, mdl, prompt, family, n_trials=16, n_deterministic=1):
+    """
+    Generate all N_TRIALS responses for one prompt in two batched calls:
+    - Call 1: 1 deterministic response (temperature=0, batch_size=1)
+    - Call 2: (n_trials-1) stochastic responses (temperature=0.7, batched)
+    
+    Much faster than sequential generation — GPU processes all stochastic
+    trials simultaneously instead of one at a time.
+    
+    Returns: list of (response_str, temperature, error) tuples
+    """
+    extra = {}
+    if family == "qwen":
+        extra = {"chat_template_kwargs": {"enable_thinking": False}}
+
+    messages = [{"role": "user", "content": prompt}]
+    results = []
+
+    # ── deterministic trial (batch=1) ─────────────────────────────────────────
+    try:
+        input_ids = apply_template(tok, messages, mdl.device, extra)
+        with torch.no_grad():
+            out = mdl.generate(
+                input_ids,
+                max_new_tokens=256,
+                do_sample=False,
+                pad_token_id=tok.eos_token_id,
+            )
+        response = tok.decode(
+            out[0][input_ids.shape[1]:],
+            skip_special_tokens=True,
+        ).strip()
+        results.append((response, 0.0, False))
+    except Exception as e:
+        results.append(("", 0.0, True))
+
+    # ── stochastic trials (batched) ───────────────────────────────────────────
+    n_stochastic = n_trials - n_deterministic
+    if n_stochastic > 0:
+        try:
+            # tokenize once, repeat for batch
+            input_ids = apply_template(tok, messages, mdl.device, extra)
+            # shape: [1, seq_len] -> [n_stochastic, seq_len]
+            batched_input = input_ids.repeat(n_stochastic, 1)
+
+            with torch.no_grad():
+                out = mdl.generate(
+                    batched_input,
+                    max_new_tokens=256,
+                    do_sample=True,
+                    temperature=0.7,
+                    pad_token_id=tok.eos_token_id,
+                )
+
+            input_len = input_ids.shape[1]
+            for i in range(n_stochastic):
+                response = tok.decode(
+                    out[i][input_len:],
+                    skip_special_tokens=True,
+                ).strip()
+                results.append((response, 0.7, False))
+
+        except torch.cuda.OutOfMemoryError:
+            # OOM fallback: generate stochastic trials sequentially
+            print(f"  OOM on batch size {n_stochastic} — falling back to sequential")
+            for _ in range(n_stochastic):
+                try:
+                    input_ids = apply_template(tok, messages, mdl.device, extra)
+                    with torch.no_grad():
+                        out = mdl.generate(
+                            input_ids,
+                            max_new_tokens=256,
+                            do_sample=True,
+                            temperature=0.7,
+                            pad_token_id=tok.eos_token_id,
+                        )
+                    response = tok.decode(
+                        out[0][input_ids.shape[1]:],
+                        skip_special_tokens=True,
+                    ).strip()
+                    results.append((response, 0.7, False))
+                except Exception as e:
+                    results.append(("", 0.7, True))
+        except Exception as e:
+            print(f"  Batch generation error: {e} — falling back to sequential")
+            for _ in range(n_stochastic):
+                try:
+                    input_ids = apply_template(tok, messages, mdl.device, extra)
+                    with torch.no_grad():
+                        out = mdl.generate(
+                            input_ids,
+                            max_new_tokens=256,
+                            do_sample=True,
+                            temperature=0.7,
+                            pad_token_id=tok.eos_token_id,
+                        )
+                    response = tok.decode(
+                        out[0][input_ids.shape[1]:],
+                        skip_special_tokens=True,
+                    ).strip()
+                    results.append((response, 0.7, False))
+                except Exception as e:
+                    results.append(("", 0.7, True))
+
+    return results
+
+
 def llamaguard_classify(lg_tok, lg_mdl, prompt, response):
     chat = [
         {"role": "user",      "content": prompt},
@@ -252,26 +359,18 @@ def pass1_generate(agent_id, cfg, prompts, output_dir):
         trials      = []
         t_prompt    = time.time()
 
-        for trial in range(N_TRIALS):
-            temperature = 0.0 if trial < N_DETERMINISTIC else 0.7
-            try:
-                response = generate_response(
-                    tok, mdl, prompt_text, temperature, family
-                )
-                trials.append({
-                    "trial": trial,
-                    "temperature": temperature,
-                    "response": response,
-                    "error": False,
-                })
-            except Exception as e:
-                trials.append({
-                    "trial": trial,
-                    "temperature": temperature,
-                    "response": "",
-                    "error": True,
-                    "error_msg": str(e),
-                })
+        # Batched generation — all 16 trials in 2 GPU calls (1 det + 1 batch stochastic)
+        all_trial_results = generate_all_trials(
+            tok, mdl, prompt_text, family,
+            n_trials=N_TRIALS, n_deterministic=N_DETERMINISTIC
+        )
+        for trial_idx, (response, temperature, error) in enumerate(all_trial_results):
+            trials.append({
+                "trial": trial_idx,
+                "temperature": temperature,
+                "response": response,
+                "error": error,
+            })
                 print(f"  [{i+1}] {prompt_id} trial {trial} ERROR: {e}")
 
         record = {

@@ -38,7 +38,7 @@ PROMPT_POOL   = Path("/home/sha511/compete-safety/multiagent/data/prompt_pools/v
 CACHE_DIR     = "/scratch3/sha511/huggingface_cache"
 OUTPUT_BASE   = Path("/scratch3/sha511/cssv3_results/verification")
 LLAMAGUARD_ID = "meta-llama/Llama-Guard-3-8B"
-N_TRIALS      = 16
+N_TRIALS      = 8
 N_DETERMINISTIC = 1
 
 AGENTS = {

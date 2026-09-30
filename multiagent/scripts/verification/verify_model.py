@@ -371,7 +371,6 @@ def pass1_generate(agent_id, cfg, prompts, output_dir):
                 "response": response,
                 "error": error,
             })
-                print(f"  [{i+1}] {prompt_id} trial {trial} ERROR: {e}")
 
         record = {
             "prompt_id": prompt_id,

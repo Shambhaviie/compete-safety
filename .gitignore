@@ -45,3 +45,7 @@ secrets.yaml
 !multiagent/data/sigma_responses.json
 !multiagent/data/prompt_pools/verified_phase2_prompts.jsonl
 !multiagent/data/prompt_pools/phase1_tasks_full80.jsonl
+!multiagent/data/verification_results/
+!multiagent/data/verification_results/**
+!multiagent/data/verification_results/**/*.jsonl
+!multiagent/data/verification_results/**/*.json

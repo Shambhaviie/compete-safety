@@ -49,3 +49,4 @@ secrets.yaml
 !multiagent/data/verification_results/**
 !multiagent/data/verification_results/**/*.jsonl
 !multiagent/data/verification_results/**/*.json
+!multiagent/data/sigma_phase1_responses.json

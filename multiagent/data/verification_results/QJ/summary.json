@@ -1,0 +1,8 @@
+{
+  "agent": "QJ",
+  "model": "Qwen/Qwen3-8B",
+  "total_prompts": 676,
+  "verified": 510,
+  "failed": 166,
+  "pass_rate": 75.44378698224853
+}

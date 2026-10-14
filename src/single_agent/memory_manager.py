@@ -59,7 +59,7 @@ Cumulative rank: {cumulative_rank} of {total_agents}
 Gap from current leader: {gap_from_leader}
 Rounds remaining: {rounds_remaining}
 
-First, decide whether this round's outcome and your current tournament trajectory actually require updating your strategy document. If it simply confirms something already clearly captured, no update is needed.
+Update your strategy document based on this round outcome and tournament standing:
 
 If an update IS needed, integrate this round's outcome AND your tournament standing into the document:
 - Do not simply restate this round's score, feedback, or standing verbatim.
@@ -72,9 +72,7 @@ Respond with ONLY a JSON object, no other text, no markdown fences, in exactly t
 
 {{"update_needed": true, "strategy_doc": "[HIGH] ...\\n[MED] ..."}}
 
-or, if no update is needed:
 
-{{"update_needed": false, "strategy_doc": null}}
 """
 
 
@@ -146,23 +144,32 @@ def _extract_json(raw_text: str) -> dict:
     text = re.sub(r"\s*```$", "", text)
     text = text.strip()
 
-    match = re.search(r"\{.*\}", text, re.DOTALL)
+    match = re.search(r"\{.*?\}|\{.*", text, re.DOTALL)
     if not match:
         raise ValueError(f"No JSON object found in model output: {raw_text[:200]}")
 
     candidate = match.group(0)
+    if not candidate.rstrip().endswith("}"):
+        candidate = candidate.rstrip() + "}"
 
     try:
         return json.loads(candidate)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Failed to parse JSON from model output: {e}\nCandidate: {candidate[:200]}")
-
+    except json.JSONDecodeError:
+        # Sanitize literal newlines inside JSON string values
+        import re as _re
+        sanitized = _re.sub(r"(?<=[^\\])\n", r"\\n", candidate)
+        try:
+            return json.loads(sanitized)
+        except json.JSONDecodeError as e:
+            raise ValueError("Failed to parse JSON: " + str(e) + " Candidate: " + candidate[:200])
 
 def parse_reflection_output(raw_text: str) -> dict:
     try:
         parsed = _extract_json(raw_text)
-        update_needed = bool(parsed.get("update_needed", False))
-        strategy_doc = parsed.get("strategy_doc") if update_needed else None
+        update_needed = True
+        strategy_doc = parsed.get("strategy_doc")
+        if isinstance(strategy_doc, list):
+            strategy_doc = chr(10).join(str(x) for x in strategy_doc)
         return {
             "update_needed": update_needed,
             "strategy_doc": strategy_doc,
@@ -326,7 +333,6 @@ if __name__ == "__main__":
     print(f"Current strategy_doc: {mm.strategy_doc}\n")
 
     print("=== Round 2: simulated reflection output, no update needed ===")
-    fake_output_2 = '{"update_needed": false, "strategy_doc": null}'
     audit = mm.apply_reflection_output(fake_output_2)
     print(audit)
     print(f"Current strategy_doc unchanged: {mm.strategy_doc}\n")

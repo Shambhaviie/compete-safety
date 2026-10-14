@@ -54,3 +54,7 @@ secrets.yaml
 !multiagent/data/prompt_pools/intersection_verified_7agent.jsonl
 !multiagent/data/prompt_pools/intersection_verified_5agent.jsonl
 !multiagent/data/prompt_pools/phase1_tasks_full85.jsonl
+*.txt
+!multiagent/results/
+!multiagent/results/readable_runs/
+!multiagent/results/readable_runs/*.txt

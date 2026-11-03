@@ -16,8 +16,6 @@ mechinterp/results/
 mechinterp/probes/
 
 # Data
-*.jsonl
-*.json
 data/baseline*/
 data/benchmarks/
 
@@ -30,7 +28,6 @@ venv/
 *.egg-info/
 
 # Logs
-*.log
 nohup.out
 checkpoints/
 
@@ -58,3 +55,7 @@ secrets.yaml
 !multiagent/results/
 !multiagent/results/readable_runs/
 !multiagent/results/readable_runs/*.txt
+
+# Preserve archived Virga tournament results
+!experiment_archive/virga_tournaments/results/
+!experiment_archive/virga_tournaments/results/**
